@@ -19,16 +19,19 @@ export interface AnalyzeResumeResponse {
 }
 
 export const analyzeResume = async (
-  data: AnalyzeResumeRequest
+  resume: File,
+  jobDescription: string
 ): Promise<AnalyzeResumeResponse> => {
+  const formData = new FormData();
+
+  formData.append("resume", resume);
+  formData.append("jobDescription", jobDescription);
+
   const response = await fetch(
     "http://localhost:5000/api/ai/analyze-resume",
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+      body: formData,
     }
   );
 

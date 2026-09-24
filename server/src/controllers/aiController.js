@@ -1,19 +1,36 @@
+const pdfParse = require("pdf-parse");
+
 const {
-  analyzeResume
+  analyzeResume,
 } = require("../services/openaiService");
 
 const analyzeResumeController = async (req, res) => {
   try {
-    const {
-      resumeText,
-      jobDescription
-    } = req.body;
+    const { jobDescription } = req.body;
 
-    if (!resumeText || !jobDescription) {
+    if (!req.file) {
       return res.status(400).json({
-        message: "Resume and job description are required"
+        message: "Resume PDF is required",
       });
     }
+
+    if (!jobDescription) {
+      return res.status(400).json({
+        message: "Job description is required",
+      });
+    }
+
+    const pdfData = await pdfParse(req.file.buffer);
+
+    const resumeText = pdfData.text;
+
+    if (!resumeText.trim()) {
+      return res.status(400).json({
+        message: "Could not extract text from PDF",
+      });
+    }
+
+    console.log("Resume text extracted successfully");
 
     const result = await analyzeResume(
       resumeText,
@@ -22,19 +39,18 @@ const analyzeResumeController = async (req, res) => {
 
     res.json({
       success: true,
-      result
+      result,
     });
-
   } catch (error) {
-    console.error(error);
+    console.error("Resume analysis error:", error);
 
     res.status(500).json({
       success: false,
-      message: "AI analysis failed"
+      message: "Resume analysis failed",
     });
   }
 };
 
 module.exports = {
-  analyzeResumeController
+  analyzeResumeController,
 };
