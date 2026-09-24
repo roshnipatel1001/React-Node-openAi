@@ -1,10 +1,10 @@
-const openai = require("../config/openai");
+const gemini = require("../config/gemini");
 
-const analyzeResume = async (resumeText, jobDescription) => {
-  const response = await openai.responses.create({
-    model: "gpt-5",
-
-    input: `
+const analyzeResume = async (
+  resumeText,
+  jobDescription
+) => {
+  const prompt = `
 You are an expert technical recruiter.
 
 Analyze the candidate's resume against the job description.
@@ -38,10 +38,19 @@ Rules:
 - interviewQuestions must be an array of strings.
 - Do not add markdown.
 - Do not add explanations outside JSON.
-`,
-  });
+`;
 
-  return JSON.parse(response.output_text);
+  const response = await gemini.models.generateContent({
+  model: "gemini-3.5-flash-lite",
+  contents: prompt,
+  config: {
+    responseMimeType: "application/json",
+  },
+});
+
+  const text = response.text;
+
+  return JSON.parse(text);
 };
 
 module.exports = {
